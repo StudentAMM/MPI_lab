@@ -17,6 +17,21 @@
 from mpi4py import MPI
 import numpy as np
 from itertools import chain
+from decimal import Decimal
+from decimal import getcontext
+
+
+def my_arcsin(x, eps):
+    n = Decimal(0)
+    a = x
+    arcsin = x
+    E = 0.1 / (10 ** eps)
+    while abs(a) > E:
+        a *= (x * x * (2 * n + 1) * (2 * n + 1) / (2 * (n + 1) * (2 * n + 3)))
+        arcsin += a
+        n += 1
+    return arcsin
+
 
 comm = MPI.COMM_WORLD
 
@@ -53,10 +68,13 @@ if rank == 0:
 eps = comm.bcast(eps, root=0)
 points_to_share = comm.scatter(points_to_share, root=0)
 
+# установка точности вычислений
+getcontext().prec = eps
+
 # вычислить значения функции в точках
 data = []
 for point in points_to_share:
-    data.append((point, round(np.math.asin(point), eps)))
+    data.append((point, my_arcsin(Decimal(point), eps)))
 
 # отправить мастеру
 data = comm.gather(data, root=0)

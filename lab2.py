@@ -35,7 +35,7 @@ def my_arcsin(x, eps):
 
 comm = MPI.COMM_WORLD
 
-rank = comm.Get_rank()
+rank = comm.Get_rank()  # ранг
 k = comm.Get_size()  # кол-во запущенных процесов
 eps = 0
 points_to_share = []
@@ -52,6 +52,7 @@ if rank == 0:
         A = -1
     if B > 1:
         B = 1
+
     eps = abs(int(input("input eps: ")))
     n = abs(int(input("input n: ")))
     getcontext().prec = eps  # установка точности для точек, которые будут отправлены

@@ -42,8 +42,8 @@ points_to_share = []
 
 if rank == 0:
     # ввод данных
-    A = float(input("input A: "))
-    B = float(input("input B: "))
+    A = Decimal(input("input A: "))
+    B = Decimal(input("input B: "))
     if A > B:
         c = A
         A = B
@@ -54,21 +54,22 @@ if rank == 0:
         B = 1
     eps = abs(int(input("input eps: ")))
     n = abs(int(input("input n: ")))
+    getcontext().prec = eps  # установка точности для точек, которые будут отправлены
     # точки для которых надо рассчитать значение функции
-    points = np.linspace(A, B, n, endpoint=True).round(eps).tolist()
+    c = (B - A) / (n - 1)
+    points = list(A + c * i for i in range(0, n))
 
     # массив масивов с точками, которые отправляются другим процессам
     split_list = np.linspace(0, len(points), k, endpoint=False).round(eps)
     split_list = split_list.astype(int).tolist()
     temp = zip(chain([0], split_list), chain(split_list, [None]))
     points_to_share = list(points[i: j] for i, j in temp)[1:]
-    print(points_to_share)
 
 # отправить данные всем процесам
 eps = comm.bcast(eps, root=0)
 points_to_share = comm.scatter(points_to_share, root=0)
 
-# установка точности вычислений
+# установка точности вычислений для всех процессов
 getcontext().prec = eps
 
 # вычислить значения функции в точках

@@ -12,6 +12,7 @@
 
 # 5) arcsin
 
+# eps - сколько знаков считать правильно после запятой
 
 from mpi4py import MPI
 import numpy as np
@@ -28,13 +29,21 @@ if rank == 0:
     # ввод данных
     A = float(input("input A: "))
     B = float(input("input B: "))
-    eps = int(input("input eps: "))
-    n = int(input("input n: "))
+    if A > B:
+        c = A
+        A = B
+        B = c
+    if A < -1:
+        A = -1
+    if B > 1:
+        B = 1
+    eps = abs(int(input("input eps: ")))
+    n = abs(int(input("input n: ")))
     # точки для которых надо рассчитать значение функции
-    points = np.linspace(A, B, n, endpoint=True).tolist()
+    points = np.linspace(A, B, n, endpoint=True).round(eps).tolist()
 
     # массив масивов с точками, которые отправляются другим процессам
-    split_list = np.linspace(0, len(points), k, endpoint=False).round()
+    split_list = np.linspace(0, len(points), k, endpoint=False).round(eps)
     split_list = split_list.astype(int).tolist()
     temp = zip(chain([0], split_list), chain(split_list, [None]))
     points_to_share = list(points[i: j] for i, j in temp)[1:]
@@ -47,7 +56,7 @@ points_to_share = comm.scatter(points_to_share, root=0)
 # вычислить значения функции в точках
 data = []
 for point in points_to_share:
-    data.append((point, np.math.asin(point)))
+    data.append((point, round(np.math.asin(point), eps)))
 
 # отправить мастеру
 data = comm.gather(data, root=0)

@@ -12,7 +12,7 @@
 
 # 5) arcsin
 
-# eps - до скольки знаков считать правильно после запятой
+# eps (целое число)- до скольки знаков считать правильно после запятой
 
 from mpi4py import MPI
 import numpy as np
@@ -25,7 +25,7 @@ def my_arcsin(x, eps):
     n = Decimal(0)
     a = x
     arcsin = x
-    E = 0.1 / (10 ** eps)
+    E =Decimal("0"*eps+".1")
     while abs(a) > E:
         a *= (x * x * (2 * n + 1) * (2 * n + 1) / (2 * (n + 1) * (2 * n + 3)))
         arcsin += a
@@ -61,7 +61,7 @@ if rank == 0:
     points = list(A + c * i for i in range(0, n))
 
     # массив масивов с точками, которые отправляются другим процессам
-    split_list = np.linspace(0, len(points), k, endpoint=False).round(eps)
+    split_list = np.linspace(0, len(points), k, endpoint=False)
     split_list = split_list.astype(int).tolist()
     temp = zip(chain([0], split_list), chain(split_list, [None]))
     points_to_share = list(points[i: j] for i, j in temp)[1:]
